@@ -166,7 +166,7 @@ function selectAvatar(){
         }
         
         document.getElementById('pantallaAvatar').style.display = 'none';
-        document.getElementById('pantallaUsuario').style.display = 'block';
+        document.getElementById('pantallaUsuario').style.display = 'flex';
     }
     else {
         Swal.fire({
