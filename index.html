@@ -1,0 +1,224 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Farm Brothers</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body>
+
+    <!--Pantalla de inicio-->
+    <section id="mainPantalla">
+        <div class="canvasContainer">
+            <canvas id="pantallaInicio" width="800" height="600"></canvas>
+            
+            <div class="btns-main">
+                <button id="PlayBtn" onclick="pantalla_Avatar()"><img src="media/playBtn.png"></button>
+                <button id="InstrBtn" onclick="pantalla_Instrucciones()"><img src="media/instructionsBtn.png"></button>
+                <button id="ScoresBtn" onclick="pantalla_scores()"><img src="media/scoresBtn.png"></button>
+                <button id="CreditsBtn" onclick="pantalla_Creditos()"><img src="media/creditsBtn.png"></button>
+            </div>
+        </div>
+    </section>
+
+    <!--Pantalla para el uso de drag and drop--> 
+    <section id="pantallaAvatar" style="display: none;">
+        <div class="txt-format --Ainstrucciones">
+            <h1>ELIGE A TU PERSONAJE</h1>
+            <p>ARRASTRALO A LA CASILLA</p>
+        </div>
+        
+        <div id="avatares">
+            <div>
+                <img src="media/avatar1.png" draggable="true" id="avatar1">
+            </div>
+    
+            <div>
+                <img src="media/avatar2.png" draggable="true" id="avatar2">
+            </div>
+        </div>
+
+        <div id="dropzone"></div>
+        
+        <div class="btns-avatar">
+            <button id="regresarInicio" onclick="backMain1()">
+                <img src="media/backBtn.png">
+            </button>
+
+            <button id="selectAvtr" onclick="selectAvatar()">
+                <img src="media/nextBtn.png">
+            </button>
+        </div>
+    </section>
+
+    <!--Pantalla para elegir username-->
+    <section id="pantallaUsuario" style="display: none;">
+        <div class="txt-format">
+            <h1>Username</h1>
+            <p>escribe tu nombre de usuario</p>
+        </div>
+
+        <div class="vstack gap-3" >
+            <!--usando bootstrap-->
+            <div class="p-2 d-flex justify-content-center">
+                        <!--usando bootstrap tambien-->
+                <input class="form-control" type="text" id="nombre" placeholder="ingresa username aqui"/>
+            </div>
+            <div class="p-2 d-flex justify-content-center" ><!--mas bootstrap-->
+                <button class=" btn-pixel" onclick="validarName()">
+                    JUGAR
+                </button>
+            </div>
+            <div class="p-2 d-flex justify-content-center">
+                <button id="regresarInicio" onclick="backToPantalla_Avatar()">
+                    <img src="media/backBtn.png">
+                </button>
+            </div>
+          </div>
+    </section>
+
+    <!--Pantalla para scores-->
+    <section id="pantallaScores" style="display: none;">
+        <div class="txt-format">
+            <h1>Scores</h1>
+        </div>
+    
+        <div class="score-container">
+            <table class="score">
+                <thead>
+                    <tr>
+                        <th colspan="3">Puntajes</th>
+                    </tr>
+                </thead>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Usuario</th>
+                        <th>Puntuación</th>
+                    </tr>
+                </thead>
+                <tbody id="scoreTableBody">
+                    <!-- Datos dinámicos -->
+                </tbody>
+            </table>
+        </div>
+    
+        <button id="regresarInicio" onclick="backMainScore()">
+            <img src="media/backBtn.png">
+        </button>
+    </section>
+    <script>
+        const scoreTableBody = document.getElementById("scoreTableBody");
+        let jugadores = JSON.parse(localStorage.getItem("jugadores")) || [];
+    
+        // Ordenamos de mayor a menor puntaje
+        jugadores.sort((a, b) => b.score - a.score);
+    
+        scoreTableBody.innerHTML = ""; // Limpiamos la tabla antes de llenarla
+    
+        // Llenamos la tabla con los datos y aplicamos estilos al top 3
+        jugadores.forEach((jugador, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${jugador.usuario}</td>
+                <td>${jugador.score}</td>
+            `;
+            if (index === 0) row.classList.add('top1');
+            else if (index === 2) row.classList.add('top3');
+            else if (index === 1) row.classList.add('top2');
+    
+            scoreTableBody.appendChild(row);
+        });
+    
+        function backMainScore() {
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <!--Pantalla de instrucciones-->
+    <section id="pantallaInstrucciones" style="display: none;">
+        <div class="txt-format">
+            <h1>¡BIENVENIDO!</h1>
+            <p>
+                EN FARM BROTHERS ERES UN GRANJERO QUE DEBE CUIDAR DE SU RANCHITO 
+                Y SUPERAR LOS OBSTACULOS EN CADA NIVEL, SOLO TIENES 3 OPORTUNIDADES.
+            </p>
+            <p>INSTRUCCIONES PARA JUGAR:</p>
+        </div>
+
+        <div class="contenido-Instrucciones txt-format">
+            <div class="conteinerI">
+                <h2>NIVEL #1</h2>
+                <p>
+                    EN ESTE PRIMER NIVEL, DEBES RECOJER LAS PACAS QUE SE ENCUENTRAN
+                    EN LAS PLATAFORMAS, PERO CUIDADO CON LAS BOMBAS, ¡RECUERDA QUE SOLO TIENES 3 VIDAS!
+                </p>
+            </div>
+
+            <div class="conteinerI">
+                <h2>NIVEL #2</h2>
+                <p>
+                    AHORA, DEBERAS PERSEGUIR A TUS GALLINAS, Y ESCAPAR DE TU PEOR ENEMIGO,
+                    EL COYOTE QUE QUIERE CAZARLAS, Y ADEMAS, PUEDE HACERTE DAÑO.
+                    PIENSA BIEN TUS MOVIMIENTOS, PUES TE SIGUE, Y ADEMAS ES MAS RAPIDO QUE TU.
+                    TIENES UNOS SEGUNDOS DE VENTAJA ANTES DE QUE COMIENCE A SEGUIRTE, DATE PRISA.
+    
+                    EN ESTE NIVEL, PUEDES OBTENER AYUDA EXTRA DE UN RECURSO ESPECIAL,
+                    SI PONES ATENCION, VERAS UNA JAULA, QUE VA A CAPTURAR AL COYOTE,
+                    Y HARA MAS FACIL EL TRABAJO DE REUNIR A TUS GALLINAS.
+                </p>
+            </div>
+        </div>
+
+        <div class="txt-format">
+            <h2>¡AHORA ESTAS LISTO, CUIDA BIEN DE TU RANCHO!</h2>
+        </div>
+
+        <div class="btns-instrucciones">
+            <button id="regresarInicio" onclick="backMain2()">
+                <img src="media/backBtn.png">
+            </button>
+        </div>
+    </section>
+
+    <!--Pantalla de creditos-->
+    <section id="pantallaCreditos" style="display: none;">
+        <div class="infoContainer">
+            <div class="txt-format">
+                <h2>RAFAEL MARQUEZ MACIAS</h2>
+                <h2>CAMILA JAASIEL MENDOZA MARTINEZ</h2>            
+            </div>
+    
+            <div class="rafa_cami">
+                <img src="media/rafa_cami.jpg">
+            </div>
+    
+            <div class="txt-format">
+                <h2>MATERIA: TECNOLOGIAS WEB</h2>
+                <h2>FECHA: 14/03/24</h2>            
+            </div>
+        </div>
+
+        <div class="btns-creditos">
+            <button id="regresarInicio" onclick="backMain3()">
+                <img src="media/backBtn.png">
+            </button>
+        </div>
+    </section>
+
+    <!--Game container-->
+    <section id="gameContainer" style="display: none;"></section>
+
+    <script src="js/settings.js"></script>
+    <!--Para BootStrap-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+</body>
+</html>
