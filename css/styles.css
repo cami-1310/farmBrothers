@@ -25,6 +25,14 @@ body {
     font-style: normal;
 }
 
+#gameContainer{
+    font-family: "Jersey 10", sans-serif !important;
+    font-weight: 400;
+    font-style: normal;
+    text-align: center;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 /*Pantalla de inicio*/
 #mainPantalla {
     position: relative;
@@ -331,7 +339,7 @@ body {
 }
 
 #nombre{
-    font-family: 'Jersey 10', cursive;
+    font-family: 'Jersey 10', sans-serif;
     font-size: 24px;
     align-content: center;
     width: 90%;
@@ -358,18 +366,16 @@ body {
 
 .score-container {
     font-size: 20px;
-    height: 400px;
+    max-height: 400px;
     width: 600px;
-    overflow-y: auto;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 10px;
-    padding: 10px;
+    margin: 15px;
 }
 
 .score {
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     width: 100%;
     height: 100%;
     border-collapse: separate;
@@ -384,15 +390,28 @@ body {
     color: black;
 }
 
-.score th {
+.score thead tr th {
     background-color: #004d00;
     color: white;
-    font-size: 30px;
-    letter-spacing: 2px;
+    font-size: 25px;
+    letter-spacing: 1px;
 }
 
-.score tbody tr{
-    height: 30px;
+.score thead {
+    padding-right: 17px;
+}
+
+.score tbody {
+    display: block;
+    height: 300px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.score thead, .score tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
 }
 
 /* Top 3 scores*/

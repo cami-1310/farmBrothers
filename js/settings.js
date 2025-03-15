@@ -1,11 +1,11 @@
 var selectedAvatar;
 let nombre;
-let scores = [{ usuario: "", score: 0 }];
+let scores = [{ usuario: "", score: 0 , fecha:""}];
 localStorage.setItem('scores', JSON.stringify(scores));
 let img3Vidas;
 let img2Vidas;
 let img1Vidas;
-
+let fechaActual;
 
 /* Para uso de canvas ---------------------------------------------------------------------- */
 let canvas = document.getElementById("pantallaInicio");
@@ -199,12 +199,13 @@ function ejecutarJuego(){
     var gallinas;
     var bombs;
     var coyote;
+    var jaulaEspecial;
     var platforms;
     var cursors;
     var score = 0;
     var gameOver = false;
     var scoreText;
-    var vidas=3;
+    var vidas;
     
     class Lvl1 extends Phaser.Scene {
         constructor() {
@@ -217,9 +218,11 @@ function ejecutarJuego(){
             this.load.image('floor1', 'media/floor1.png');
             this.load.image('paca', 'media/paca.png');
             this.load.image('bomb', 'media/bomb.png');
-            this.load.image('3vida', 'media/bomb.png');
-            this.load.image('2vida', 'media/bomb.png');
-            this.load.image('1vida', 'media/bomb.png');
+            this.load.image('3vida', 'media/vidas3.png');
+            this.load.image('2vida', 'media/vidas2.png');
+            this.load.image('1vida', 'media/vidas1.png');
+            this.load.image('text', 'media/gameOver_txt.png'); //pantalla de game over
+            this.load.image('btnVolver', 'media/backGmOv.png');
             this.load.spritesheet('dude1', 'media/player1.png', { frameWidth: 46, frameHeight: 90 });
             this.load.spritesheet('dude2', 'media/player2.png', { frameWidth: 46, frameHeight: 90 });
         }
@@ -228,18 +231,32 @@ function ejecutarJuego(){
             this.scene.stop('Lvl1');
             this.scene.start('Lvl2');
 
+            vidas=3;
             // Fondo
             this.add.image(400, 300, 'sky1');
     
             // Puntaje
-            scoreText = this.add.text(16, 0, 'score: ', { fontSize: '32px', fill: '#000' });
-    
+            scoreText = this.add.text(16, 10, 'score: ', { fontSize: '32px',fill: '#000' });
+
+            let today = new Date();
+            fechaActual = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+
+            // fecha
+            let fechaTexto = this.add.text(210, 10, ` ${fechaActual}`, { fontSize: '32px', fill: '#000' });
+
+            // nombre
+            var nom=this.add.text(600, 10, nombre, { fontSize: '32px', fill: '#000' });
+
             // Plataformas
             platforms = this.physics.add.staticGroup();
             platforms.create(400, 600, 'floor1');
             platforms.create(610, 430, 'ground1');
             platforms.create(50, 280, 'ground1');
             platforms.create(750, 260, 'ground1');
+            //vidas
+            img1Vidas=this.add.image(520,25,'1vida');
+            img2Vidas=this.add.image(520,25,'2vida');
+            img3Vidas=this.add.image(520,25,'3vida');
     
             if(selectedAvatar==="avatar1"){
                 player = this.physics.add.sprite(100, 420, 'dude1');
@@ -316,25 +333,42 @@ function ejecutarJuego(){
             this.physics.add.collider(pacas, platforms);
             this.physics.add.collider(bombs, platforms);
             this.physics.add.overlap(player, pacas, this.colectarPacas, null, this);
-            this.physics.add.collider(player, bombs, this.hitBomb, null, this);
+            this.physics.add.collider(player, bombs, (player, bomb) => {
+                // Llama a la función hitBomb
+                this.hitBomb(player, bomb);
+                bomb.destroy();
+            }, null, this);
         }
     
         update() {
-            if (gameOver) return;
-    
-            if (cursors.left.isDown) {
-                player.setVelocityX(-160);
-                player.anims.play('left', true);
-            } else if (cursors.right.isDown) {
-                player.setVelocityX(160);
-                player.anims.play('right', true);
-            } else {
-                player.setVelocityX(0);
-                player.anims.play('turn');
+            if(vidas==2){
+                img3Vidas.destroy();
+            }else if(vidas===1){
+                img2Vidas.destroy();
+            }else if(vidas===0){
+                img1Vidas.destroy();
+                gameOver=true;
             }
-    
-            if (cursors.up.isDown && player.body.touching.down) {
-                player.setVelocityY(-330);
+            if (gameOver && !this.hasHandledGameOver) {
+                this.hasHandledGameOver = true; // para que no se llame muchas veces
+                GameOver(this);
+            }
+
+            if(!gameOver){
+                if (cursors.left.isDown) {
+                    player.setVelocityX(-160);
+                    player.anims.play('left', true);
+                } else if (cursors.right.isDown) {
+                    player.setVelocityX(160);
+                    player.anims.play('right', true);
+                } else {
+                    player.setVelocityX(0);
+                    player.anims.play('turn');
+                }
+        
+                if (cursors.up.isDown && player.body.touching.down) {
+                    player.setVelocityY(-330);
+                }
             }
         }
     
@@ -344,8 +378,8 @@ function ejecutarJuego(){
             score += 10;
             scoreText.setText('Score: ' + score);
     
-            if (pacas.countActive(true) === 0) {
-                /*pacas.children.iterate(child => {
+            if (pacas.countActive(true) === 0 && score<=470) {
+                pacas.children.iterate(child => {
                     child.enableBody(true, child.x, 0, true, true);
                 });
     
@@ -354,17 +388,18 @@ function ejecutarJuego(){
                 bomb.setBounce(1);
                 bomb.setCollideWorldBounds(true);
                 bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
-                bomb.allowGravity = false;*/
+                bomb.allowGravity = false;
+                
+            }
+            if(score>=480){
+                // llamada a pantalla de ganar
                 this.scene.stop('Lvl1');
                 this.scene.start('Lvl2'); // Cambia a la escena del segundo nivel
             }
         }
     
         hitBomb(player) {
-            this.physics.pause();
-            player.setTint(0xff0000);
-            player.anims.play('turn');
-            gameOver = true;
+            vidas-=1;
         }
     } //lvl1
     
@@ -379,6 +414,8 @@ function ejecutarJuego(){
             this.load.image('miniGround', 'media/plataformaMini.png')
             this.load.image('floor2', 'media/floor2.png');
             this.load.image('gallina', 'media/paca.png');
+            this.load.image('jaula', 'media/jaula.png');
+            this.load.image('bomb', 'media/bomb.png');
             this.load.image('3vida', 'media/vidas3.png');
             this.load.image('2vida', 'media/vidas2.png');
             this.load.image('1vida', 'media/vidas1.png');
@@ -392,13 +429,22 @@ function ejecutarJuego(){
     
         create() {
             gameOver = false; // Reinicia el estado del juego
-            score = 0; // Reinicia el puntaje
+            vidas=3;
 
             // Fondo
             this.add.image(400, 300, 'sky2');
         
             // Puntaje
-            scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+            scoreText = this.add.text(16, 10, 'score: ', { fontSize: '32px', fill: '#FFFFFF' });
+
+            let today = new Date();
+            fechaActual = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+
+            // fecha
+            let fechaTexto = this.add.text(210, 10, ` ${fechaActual}`, { fontSize: '32px', fill: '#FFFFFF' });
+
+            // nombre
+            var nom=this.add.text(600, 10, nombre, { fontSize: '32px', fill: '#FFFFFF' });
         
             // Plataformas
             platforms = this.physics.add.staticGroup();
@@ -408,18 +454,19 @@ function ejecutarJuego(){
             platforms.create(20, 310, 'ground2');
             platforms.create(820, 280, 'ground2');
 
-            //vidas
-            img1Vidas=this.add.image(300,10,'3vida');
-            img2Vidas=this.add.image(300,10,'2vida');
-            img3Vidas=this.add.image(300,10,'1vida');
+            // Vidas
+            img1Vidas=this.add.image(520,25,'1vida');
+            img2Vidas=this.add.image(520,25,'2vida');
+            img3Vidas=this.add.image(520,25,'3vida');
         
+            // Jugador
             if(selectedAvatar==="avatar1"){
                 player = this.physics.add.sprite(200, 420, 'dude1');
 
             } else if(selectedAvatar==="avatar2"){
                 player = this.physics.add.sprite(200, 420, 'dude2');
             }
-
+  
             player.setBounce(0.2);
             player.setCollideWorldBounds(true);
             
@@ -452,7 +499,7 @@ function ejecutarJuego(){
                 child.anims.play('walkGallina', true);
             });
 
-            // coyote
+            // Coyote
             this.anims.create({
                 key: 'walkCoyote',
                 frames: this.anims.generateFrameNumbers('coyote', { start: 0, end: 3 }),
@@ -460,28 +507,126 @@ function ejecutarJuego(){
                 repeat: -1
             });
             
-            //para movimiento del coyote
+            // para movimiento del coyote
             this.coyoteStartedFollowing = false;
 
             coyote = this.physics.add.sprite(100, 440, 'coyote');
             coyote.setBounce(0.2);
             coyote.setCollideWorldBounds(true);
             coyote.anims.play('walkCoyote');
+
+            // Bombas
+            bombs = this.physics.add.group();
         
-            // Colisiones
+            // Colisiones y overlap
             this.physics.add.collider(player, platforms);
             this.physics.add.collider(gallinas, platforms);
             this.physics.add.collider(coyote, platforms);
-            this.physics.add.collider(player, coyote, this.choqueCoyote, null, this);
+            this.physics.add.collider(bombs, platforms);
             this.physics.add.overlap(player, gallinas, this.colectarGallinas, null, this);
+            this.coyoteOverlap = true;
+            this.physics.add.overlap(coyote, gallinas, (coyote, gallina) => {
+                if (this.coyoteOverlap) {
+                    this.choqueCoyote(coyote, gallina);
+                }
+            }, null, this);
+            this.physics.add.collider(player, bombs, (player, bomb) => {
+                // Llama a la función hitBomb
+                this.hitBomb(player, bomb);
+                bomb.destroy();
+            }, null, this);
 
             //da 2 seg de ventaja al jugador y luego empieza a seguir sus movimientos
-            this.time.delayedCall(5000, () => {
+            this.time.delayedCall(2000, () => {
                 this.coyoteStartedFollowing = true;
+            });
+
+            // Recurso especial
+            // Coordenadas posibles
+            this.jaulaCoord = [
+                { x: 700, y: 520 },
+                { x: 70, y: 520 },
+                { x: 400, y: 355 },
+                { x: 440, y: 105 },
+                { x: 80, y: 235 },
+                { x: 700, y: 205 }
+            ];
+
+            jaulaEspecial=null;
+            let flagOverlap = false;
+            let delayedDestroyEvent = null;
+
+            // Evento que lanza jaula especial cada 20 segundos
+            this.time.addEvent({
+                delay: 20000,
+                loop: true,
+                callback: () => {
+                    // Solo se lanza nueva jaula si no hay otra activa
+                    if (jaulaEspecial === null) {
+                        let index = Phaser.Math.Between(0, this.jaulaCoord.length - 1);
+                        let coords = this.jaulaCoord[index];
+
+                        jaulaEspecial = this.physics.add.image(coords.x, coords.y, 'jaula');
+                        this.physics.add.collider(jaulaEspecial, platforms);
+
+                        flagOverlap = false;
+
+                        // Detectar si el jugador la toca
+                        this.physics.add.overlap(player, jaulaEspecial, () => {
+                            if (!flagOverlap) {
+                                flagOverlap = true;
+
+                                // Cancelar la destrucción automática si ocurre overlap
+                                if (delayedDestroyEvent) {
+                                    delayedDestroyEvent.remove();
+                                    delayedDestroyEvent = null;
+                                }
+
+                                // Detener al coyote y meterlo en la jaula
+                                coyote.setVelocity(0, 0);
+                                coyote.body.moves = false;
+                                coyote.setPosition(jaulaEspecial.x, jaulaEspecial.y);
+
+                                // No puede capturar gallinas mientras esta atrapado
+                                this.coyoteOverlap=false;
+
+                                // Luego de 10 segundos liberar al coyote y reestablecer lo que puede hacer
+                                this.time.delayedCall(10000, () => {
+                                    coyote.body.moves = true;
+                                    this.coyoteStartedFollowing = true;
+                                    this.coyoteOverlap = true 
+                                    if (jaulaEspecial) {
+                                        jaulaEspecial.destroy();
+                                        jaulaEspecial = null;
+                                    }
+
+                                    flagOverlap = false;
+                                });
+                            }
+                        }, null, this);
+
+                        // Si no hay overlap en 10 segundos, eliminar la jaula sola
+                        delayedDestroyEvent = this.time.delayedCall(10000, () => {
+                            if (!flagOverlap && jaulaEspecial) {
+                                jaulaEspecial.destroy();
+                                jaulaEspecial = null;
+                            }
+                        });
+                    }
+                }
             });
         }
         
         update() {
+            if(vidas===2){
+                img3Vidas.destroy();
+            }else if(vidas===1){
+                img2Vidas.destroy();
+            }else if(vidas===0){
+                img1Vidas.destroy();
+                gameOver = true;
+            }
+
             //si pierde
             if (gameOver && !this.hasHandledGameOver) {
                 this.hasHandledGameOver = true; // para que no se llame muchas veces
@@ -490,7 +635,6 @@ function ejecutarJuego(){
         
             if (!gameOver) {
                 //si no pierde
-
                 //movimiento del jugador
                 if (cursors.left.isDown) {
                     player.setVelocityX(-160);
@@ -545,7 +689,7 @@ function ejecutarJuego(){
             score += 10;
             scoreText.setText('Score: ' + score);
     
-            if (gallinas.countActive(true) === 0) {
+            if (gallinas.countActive(true) === 0 && score<=310) {
                 let xG=12;
 
                 gallinas.children.iterate(child => {
@@ -560,34 +704,51 @@ function ejecutarJuego(){
 
                     xG+=separacion;
                 });
+
+                var x = player.x < 400 ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+                var bomb = bombs.create(x, 16, 'bomb');
+                bomb.setBounce(1);
+                bomb.setCollideWorldBounds(true);
+                bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+                bomb.allowGravity = false;
+            }
+            if(score>=400){
+                //pantalla de ganar
             }
         }
     
-        choqueCoyote(player) {
-            vidas-=1;
-            if(vidas===0) gameOver = true;
-            if(vidas==2){
-                img3Vidas.destroy();
-            }else if(vidas===1){
-                img2Vidas.destroy();
-            }else if(vidas===0){
-                img1Vidas.destroy();
-            }
+        choqueCoyote(coyote, gallina) {
+            gallina.disableBody(true, true);
 
-            player.setTint(0xff0000);
-            this.tweens.add({
-                targets: player,
-                alpha: 0,
-                ease: 'Linear',
-                duration: 100,
-                repeat: 3,
-                yoyo: true,
-                onComplete: () => {
-                    player.clearTint(); // Quita el rojo
-                    player.setAlpha(1); // Asegura que quede visible
-                }
-            });
+            if (gallinas.countActive(true) === 0 && score<=310) {
+                let xG=12;
+
+                gallinas.children.iterate(child => {
+                    let separacion = Phaser.Math.Between(70, 100);
+                    child.enableBody(true, xG, 0, true, true);
+
+                    let velocidadX = Phaser.Math.Between(100, 500);
+                    if (Phaser.Math.Between(0, 1) === 0) velocidadX *= -1;
+                    child.setVelocityX(velocidadX);
+
+                    child.anims.play('walkGallina', true);
+
+                    xG+=separacion;
+                });
+
+                var x = player.x < 400 ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+                var bomb = bombs.create(x, 16, 'bomb');
+                bomb.setBounce(1);
+                bomb.setCollideWorldBounds(true);
+                bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+                bomb.allowGravity = false;
+            }
         }
+
+        hitBomb(player) {
+            vidas-=1;
+        }
+
     } //lvl2
 
     var game; //global
@@ -609,22 +770,32 @@ function ejecutarJuego(){
 
     game = new Phaser.Game(config);
 
-    function guardarScore(){
+    function guardarScore() {
         let jugadores = JSON.parse(localStorage.getItem("jugadores")) || [];
-        console.log(nombre,"-",score);
-
-        // Agregamos el nuevo jugador a la lista
-        jugadores.push({ usuario: nombre, score: score });
-
-        // Guardamos la lista actualizada en el localStorage
+        
+        console.log(nombre, "-", score, "-", fechaActual);
+        let jugadorExistente = jugadores.find(item => item.usuario === nombre);
+    
+        if (jugadorExistente) {
+            // Si el jugador existe, compara los puntajes y guarda el mayor
+            if (score > jugadorExistente.score) {
+                jugadorExistente.score = score; 
+                jugadorExistente.fecha = fechaActual; 
+            }
+        } else {
+            // si el jugador no existe, agrega el nuevo jugador a la lista
+            jugadores.push({ usuario: nombre, score: score, fecha: fechaActual });
+        }
+    
+        // Guarda la lista actualizada de jugadores en el localStorage
         localStorage.setItem("jugadores", JSON.stringify(jugadores));
     }
+    
 
     function GameOver(scene){
         scene.physics.pause();
         player.setTint(0xff0000);
         player.anims.play('turn');
-        gameOver = true;
 
         let overlay = scene.add.graphics().setDepth(10);
         overlay.fillStyle(0x000000, 0.5); // Color negro con opacidad
@@ -666,24 +837,28 @@ function validarName() {
     let regex = /^[a-zA-Z0-9_]{4,8}$/;
 
     if (regex.test(nombre)) {
-        let scores = JSON.parse(localStorage.getItem('scores')) || [];
-
+        let scores = [];
+        try {
+            scores = JSON.parse(localStorage.getItem('jugadores')) || [];
+        } catch (e) {
+            console.error("Error al cargar los scores:", e);
+            scores = [];
+        }
         // Verifica si el nombre ya existe en la lista
         let nombreExistente = scores.some(item => item.usuario === nombre);
-
+        console.log(nombre);
+        console.log(nombreExistente);
         if (!nombreExistente) {
-            Swal.fire({
-                icon: "success",
-                title: "nombre registrado",
-                text: "continuar al juego"
-            });
             document.getElementById('pantallaUsuario').style.display = 'none';
             ejecutarJuego();
         } else {
             Swal.fire({
-                icon: "error",
-                title: "Error!",
-                text: "El nombre ya existe. Por favor, elige otro."
+                icon: "success",
+                title: "Usuario reconocido",
+                text: "¡Bienvenido de nuevo!"
+            }).then(() => {
+                document.getElementById('pantallaUsuario').style.display = 'none';
+                ejecutarJuego();// ejecuta hasta que le da clic
             });
         }
     } else {

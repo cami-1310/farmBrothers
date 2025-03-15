@@ -87,9 +87,6 @@
             <table class="score">
                 <thead>
                     <tr>
-                        <th colspan="4">Puntajes</th>
-                    </tr>
-                    <tr>
                         <th>#</th>
                         <th>Usuario</th>
                         <th>Puntuación</th>
@@ -109,13 +106,13 @@
         </div>
     </section>
     <script>
-        const scoreTableBody = document.getElementById("scoreTableBody");
+        const ScoreTableBody = document.getElementById("scoreTableBody");
         let jugadores = JSON.parse(localStorage.getItem("jugadores")) || [];
     
         // Ordenamos de mayor a menor puntaje
         jugadores.sort((a, b) => b.score - a.score);
     
-        scoreTableBody.innerHTML = ""; // Limpiamos la tabla antes de llenarla
+        ScoreTableBody.innerHTML = ""; // Limpiamos la tabla antes de llenarla
     
         // Llenamos la tabla con los datos y aplicamos estilos al top 3
         jugadores.forEach((jugador, index) => {
@@ -130,7 +127,7 @@
             else if (index === 2) row.classList.add('top3');
             else if (index === 1) row.classList.add('top2');
     
-            scoreTableBody.appendChild(row);
+            ScoreTableBody.appendChild(row);
         });
     
         function backMainScore() {
@@ -163,7 +160,7 @@
                     <h2>NIVEL #2</h2>
                     <p>
                         AHORA, DEBERAS PERSEGUIR A TUS GALLINAS, Y ESCAPAR DE TU PEOR ENEMIGO,
-                        EL COYOTE QUE QUIERE CAZARLAS, Y ADEMAS, PUEDE HACERTE DAÑO.
+                        EL COYOTE QUE QUIERE CAZARLAS.
                         PIENSA BIEN TUS MOVIMIENTOS, PUES TE SIGUE, Y ADEMAS ES MAS RAPIDO QUE TU.
                         TIENES UNOS SEGUNDOS DE VENTAJA ANTES DE QUE COMIENCE A SEGUIRTE, DATE PRISA.
         
