@@ -1,11 +1,11 @@
 var selectedAvatar;
 let nombre;
-let scores = [{ usuario: "", score: 0 }];
+let scores = [{ usuario: "", score: 0 , fecha:""}];
 localStorage.setItem('scores', JSON.stringify(scores));
 let img3Vidas;
 let img2Vidas;
 let img1Vidas;
-
+let fechaActual;
 
 /* Para uso de canvas ---------------------------------------------------------------------- */
 let canvas = document.getElementById("pantallaInicio");
@@ -204,7 +204,7 @@ function ejecutarJuego(){
     var score = 0;
     var gameOver = false;
     var scoreText;
-    var vidas=3;
+    var vidas;
     
     class Lvl1 extends Phaser.Scene {
         constructor() {
@@ -217,9 +217,11 @@ function ejecutarJuego(){
             this.load.image('floor1', 'media/floor1.png');
             this.load.image('paca', 'media/paca.png');
             this.load.image('bomb', 'media/bomb.png');
-            this.load.image('3vida', 'media/bomb.png');
-            this.load.image('2vida', 'media/bomb.png');
-            this.load.image('1vida', 'media/bomb.png');
+            this.load.image('3vida', 'media/vidas3.png');
+            this.load.image('2vida', 'media/vidas2.png');
+            this.load.image('1vida', 'media/vidas1.png');
+            this.load.image('text', 'media/gameOver_txt.png'); //pantalla de game over
+            this.load.image('btnVolver', 'media/backGmOv.png');
             this.load.spritesheet('dude1', 'media/player1.png', { frameWidth: 46, frameHeight: 90 });
             this.load.spritesheet('dude2', 'media/player2.png', { frameWidth: 46, frameHeight: 90 });
         }
@@ -227,12 +229,19 @@ function ejecutarJuego(){
         create() {
             this.scene.stop('Lvl1');
             this.scene.start('Lvl2');
-
+            vidas=3;
             // Fondo
             this.add.image(400, 300, 'sky1');
     
             // Puntaje
-            scoreText = this.add.text(16, 0, 'score: ', { fontSize: '32px', fill: '#000' });
+            scoreText = this.add.text(16, 10, 'score: ', { fontSize: '32px', fill: '#000' });
+
+            let today = new Date();
+            fechaActual = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+
+            // fecha
+            let fechaTexto = this.add.text(250, 10, ` ${fechaActual}`, { fontSize: '32px', fill: '#000' });
+
     
             // Plataformas
             platforms = this.physics.add.staticGroup();
@@ -240,6 +249,10 @@ function ejecutarJuego(){
             platforms.create(610, 430, 'ground1');
             platforms.create(50, 280, 'ground1');
             platforms.create(750, 260, 'ground1');
+            //vidas
+            img1Vidas=this.add.image(580,25,'1vida');
+            img2Vidas=this.add.image(580,25,'2vida');
+            img3Vidas=this.add.image(580,25,'3vida');
     
             if(selectedAvatar==="avatar1"){
                 player = this.physics.add.sprite(100, 420, 'dude1');
@@ -316,12 +329,31 @@ function ejecutarJuego(){
             this.physics.add.collider(pacas, platforms);
             this.physics.add.collider(bombs, platforms);
             this.physics.add.overlap(player, pacas, this.colectarPacas, null, this);
-            this.physics.add.collider(player, bombs, this.hitBomb, null, this);
+            this.physics.add.collider(player, bombs, (player, bomb) => {
+                // Llama a la función hitBomb (por si quieres perder vida o reiniciar el juego)
+                this.hitBomb(player, bomb);
+            
+                // Efecto visual opcional (la bomba se pone roja)
+                bomb.setTint(0xff0000);
+            
+                
+                    bomb.destroy();
+            }, null, this);
         }
     
         update() {
-            if (gameOver) return;
-    
+            if(vidas==2){
+                img3Vidas.destroy();
+            }else if(vidas===1){
+                img2Vidas.destroy();
+            }else if(vidas===0){
+                img1Vidas.destroy();
+                gameOver=true;
+            }
+            if (gameOver && !this.hasHandledGameOver) {
+                this.hasHandledGameOver = true; // para que no se llame muchas veces
+                GameOver(this);
+            }
             if (cursors.left.isDown) {
                 player.setVelocityX(-160);
                 player.anims.play('left', true);
@@ -344,8 +376,8 @@ function ejecutarJuego(){
             score += 10;
             scoreText.setText('Score: ' + score);
     
-            if (pacas.countActive(true) === 0) {
-                /*pacas.children.iterate(child => {
+            if (pacas.countActive(true) === 0 && score<=470) {
+                pacas.children.iterate(child => {
                     child.enableBody(true, child.x, 0, true, true);
                 });
     
@@ -354,17 +386,18 @@ function ejecutarJuego(){
                 bomb.setBounce(1);
                 bomb.setCollideWorldBounds(true);
                 bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
-                bomb.allowGravity = false;*/
+                bomb.allowGravity = false;
+                
+            }
+            if(score>=480){
+                // llamada a pantalla de ganar
                 this.scene.stop('Lvl1');
                 this.scene.start('Lvl2'); // Cambia a la escena del segundo nivel
             }
         }
     
         hitBomb(player) {
-            this.physics.pause();
-            player.setTint(0xff0000);
-            player.anims.play('turn');
-            gameOver = true;
+            vidas-=1;
         }
     } //lvl1
     
@@ -392,13 +425,19 @@ function ejecutarJuego(){
     
         create() {
             gameOver = false; // Reinicia el estado del juego
-            score = 0; // Reinicia el puntaje
+            vidas=3;
 
             // Fondo
             this.add.image(400, 300, 'sky2');
         
             // Puntaje
-            scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+            scoreText = this.add.text(16, 10, 'score: ', { fontSize: '32px', fill: '#000' });
+
+            let today = new Date();
+            fechaActual = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+
+            // fecha
+            let fechaTexto = this.add.text(250, 10, ` ${fechaActual}`, { fontSize: '32px', fill: '#000' });
         
             // Plataformas
             platforms = this.physics.add.staticGroup();
@@ -409,9 +448,9 @@ function ejecutarJuego(){
             platforms.create(820, 280, 'ground2');
 
             //vidas
-            img1Vidas=this.add.image(300,10,'3vida');
-            img2Vidas=this.add.image(300,10,'2vida');
-            img3Vidas=this.add.image(300,10,'1vida');
+            img1Vidas=this.add.image(580,25,'1vida');
+            img2Vidas=this.add.image(580,25,'2vida');
+            img3Vidas=this.add.image(580,25,'3vida');
         
             if(selectedAvatar==="avatar1"){
                 player = this.physics.add.sprite(200, 420, 'dude1');
@@ -482,6 +521,14 @@ function ejecutarJuego(){
         }
         
         update() {
+            if(vidas===0) gameOver = true;
+            if(vidas===2){
+                img3Vidas.destroy();
+            }else if(vidas===1){
+                img2Vidas.destroy();
+            }else if(vidas===0){
+                img1Vidas.destroy();
+            }
             //si pierde
             if (gameOver && !this.hasHandledGameOver) {
                 this.hasHandledGameOver = true; // para que no se llame muchas veces
@@ -565,14 +612,6 @@ function ejecutarJuego(){
     
         choqueCoyote(player) {
             vidas-=1;
-            if(vidas===0) gameOver = true;
-            if(vidas==2){
-                img3Vidas.destroy();
-            }else if(vidas===1){
-                img2Vidas.destroy();
-            }else if(vidas===0){
-                img1Vidas.destroy();
-            }
 
             player.setTint(0xff0000);
             this.tweens.add({
@@ -609,22 +648,32 @@ function ejecutarJuego(){
 
     game = new Phaser.Game(config);
 
-    function guardarScore(){
+    function guardarScore() {
         let jugadores = JSON.parse(localStorage.getItem("jugadores")) || [];
-        console.log(nombre,"-",score);
-
-        // Agregamos el nuevo jugador a la lista
-        jugadores.push({ usuario: nombre, score: score });
-
-        // Guardamos la lista actualizada en el localStorage
+        
+        console.log(nombre, "-", score, "-", fechaActual);
+        let jugadorExistente = jugadores.find(item => item.usuario === nombre);
+    
+        if (jugadorExistente) {
+            // Si el jugador existe, compara los puntajes y guarda el mayor
+            if (score > jugadorExistente.score) {
+                jugadorExistente.score = score; 
+                jugadorExistente.fecha = fechaActual; 
+            }
+        } else {
+            // si el jugador no existe, agrega el nuevo jugador a la lista
+            jugadores.push({ usuario: nombre, score: score, fecha: fechaActual });
+        }
+    
+        // Guarda la lista actualizada de jugadores en el localStorage
         localStorage.setItem("jugadores", JSON.stringify(jugadores));
     }
+    
 
     function GameOver(scene){
         scene.physics.pause();
         player.setTint(0xff0000);
         player.anims.play('turn');
-        gameOver = true;
 
         let overlay = scene.add.graphics().setDepth(10);
         overlay.fillStyle(0x000000, 0.5); // Color negro con opacidad
@@ -666,24 +715,28 @@ function validarName() {
     let regex = /^[a-zA-Z0-9_]{4,8}$/;
 
     if (regex.test(nombre)) {
-        let scores = JSON.parse(localStorage.getItem('scores')) || [];
-
+        let scores = [];
+        try {
+            scores = JSON.parse(localStorage.getItem('jugadores')) || [];
+        } catch (e) {
+            console.error("Error al cargar los scores:", e);
+            scores = [];
+        }
         // Verifica si el nombre ya existe en la lista
         let nombreExistente = scores.some(item => item.usuario === nombre);
-
+        console.log(nombre);
+        console.log(nombreExistente);
         if (!nombreExistente) {
-            Swal.fire({
-                icon: "success",
-                title: "nombre registrado",
-                text: "continuar al juego"
-            });
             document.getElementById('pantallaUsuario').style.display = 'none';
             ejecutarJuego();
         } else {
             Swal.fire({
-                icon: "error",
-                title: "Error!",
-                text: "El nombre ya existe. Por favor, elige otro."
+                icon: "success",
+                title: "Usuario reconocido",
+                text: "¡Bienvenido de nuevo!"
+            }).then(() => {
+                document.getElementById('pantallaUsuario').style.display = 'none';
+                ejecutarJuego();// ejecuta hasta que le da clic
             });
         }
     } else {
