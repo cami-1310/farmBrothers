@@ -166,7 +166,7 @@ function selectAvatar(){
         }
         
         document.getElementById('pantallaAvatar').style.display = 'none';
-        document.getElementById('pantallaUsuario').style.display = 'block';
+        document.getElementById('pantallaUsuario').style.display = 'flex';
     }
     else {
         Swal.fire({
@@ -205,6 +205,12 @@ function ejecutarJuego(){
     var gameOver = false;
     var scoreText;
     var vidas;
+    let musica;
+
+    function preload(){
+        this.load.audio('GameOverSound', 'media/GameOverSound.mp3');
+        this.load.audio('WinSound', 'media/WinSound.mp3');
+    }
     
     class Lvl1 extends Phaser.Scene {
         constructor() {
@@ -224,11 +230,16 @@ function ejecutarJuego(){
             this.load.image('btnVolver', 'media/backGmOv.png');
             this.load.spritesheet('dude1', 'media/player1.png', { frameWidth: 46, frameHeight: 90 });
             this.load.spritesheet('dude2', 'media/player2.png', { frameWidth: 46, frameHeight: 90 });
+            this.load.audio('sound', 'media/lvl1Sound.mp3');
+            this.load.audio('sound2', 'media/lvl2Sound.mp3');
+            this.load.audio('item', 'media/itemLvl1.mp3');
+
         }
     
         create() {
-            this.scene.stop('Lvl1');
-            this.scene.start('Lvl2');
+            musica = this.sound.add('sound');
+            musica.play({ loop: true });
+
             vidas=3;
             // Fondo
             this.add.image(400, 300, 'sky1');
@@ -241,6 +252,8 @@ function ejecutarJuego(){
 
             // fecha
             let fechaTexto = this.add.text(250, 10, ` ${fechaActual}`, { fontSize: '32px', fill: '#000' });
+
+            var  nom=this.add.text(700, 10, nombre, { fontSize: '32px', fill: '#000' });
 
     
             // Plataformas
@@ -332,47 +345,52 @@ function ejecutarJuego(){
             this.physics.add.collider(player, bombs, (player, bomb) => {
                 // Llama a la función hitBomb (por si quieres perder vida o reiniciar el juego)
                 this.hitBomb(player, bomb);
-            
-                // Efecto visual opcional (la bomba se pone roja)
-                bomb.setTint(0xff0000);
-            
-                
-                    bomb.destroy();
+                bomb.destroy();
             }, null, this);
         }
     
         update() {
-            if(vidas==2){
+            if(vidas===2){
                 img3Vidas.destroy();
             }else if(vidas===1){
                 img2Vidas.destroy();
             }else if(vidas===0){
                 img1Vidas.destroy();
                 gameOver=true;
+                musica.stop();
             }
             if (gameOver && !this.hasHandledGameOver) {
                 this.hasHandledGameOver = true; // para que no se llame muchas veces
                 GameOver(this);
             }
-            if (cursors.left.isDown) {
-                player.setVelocityX(-160);
-                player.anims.play('left', true);
-            } else if (cursors.right.isDown) {
-                player.setVelocityX(160);
-                player.anims.play('right', true);
-            } else {
-                player.setVelocityX(0);
-                player.anims.play('turn');
+            if(!gameOver){
+                if (cursors.left.isDown) {
+                    player.setVelocityX(-160);
+                    player.anims.play('left', true);
+                } else if (cursors.right.isDown) {
+                    player.setVelocityX(160);
+                    player.anims.play('right', true);
+                } else {
+                    player.setVelocityX(0);
+                    player.anims.play('turn');
+                }
+        
+                if (cursors.up.isDown && player.body.touching.down) {
+                    player.setVelocityY(-330);
+                }  
             }
-    
-            if (cursors.up.isDown && player.body.touching.down) {
-                player.setVelocityY(-330);
-            }
+            
         }
     
         colectarPacas(player, paca) {
+            
+            let sonidoPac = this.sound.add('item');
+            sonidoPac.play();
+        
+
             paca.disableBody(true, true);
-    
+            
+
             score += 10;
             scoreText.setText('Score: ' + score);
     
@@ -391,6 +409,7 @@ function ejecutarJuego(){
             }
             if(score>=480){
                 // llamada a pantalla de ganar
+                musica.stop();
                 this.scene.stop('Lvl1');
                 this.scene.start('Lvl2'); // Cambia a la escena del segundo nivel
             }
@@ -421,9 +440,15 @@ function ejecutarJuego(){
             this.load.spritesheet('dude2', 'media/player2.png', { frameWidth: 46, frameHeight: 90 });
             this.load.spritesheet('gallinita', 'media/gallina.png', { frameWidth: 40, frameHeight: 46 });
             this.load.spritesheet('coyote', 'media/coyote.png', { frameWidth: 95, frameHeight: 60 });
+            //musica
+            this.load.audio('sound2','media/lvl2Sound.mp3');
+            this.load.audio('item2', 'media/itemLvl2.mp3');
+            this.load.audio('specialItem', 'media/itemLvl2.mp3');
         }
     
         create() {
+            let musica = this.sound.add('sound2');
+            musica.play({ loop: true });
             gameOver = false; // Reinicia el estado del juego
             vidas=3;
 
@@ -431,13 +456,16 @@ function ejecutarJuego(){
             this.add.image(400, 300, 'sky2');
         
             // Puntaje
-            scoreText = this.add.text(16, 10, 'score: ', { fontSize: '32px', fill: '#000' });
+            scoreText = this.add.text(16, 10, 'score: ', { fontSize: '32px',fill: '#FFFFFF'   });
+
 
             let today = new Date();
             fechaActual = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
 
             // fecha
-            let fechaTexto = this.add.text(250, 10, ` ${fechaActual}`, { fontSize: '32px', fill: '#000' });
+            let fechaTexto = this.add.text(210, 10, ` ${fechaActual}`, { fontSize: '32px', fill: '#FFFFFF' });
+
+            var  nom=this.add.text(600, 10, nombre, { fontSize: '32px', fill: '#FFFFFF' });
         
             // Plataformas
             platforms = this.physics.add.staticGroup();
@@ -448,9 +476,9 @@ function ejecutarJuego(){
             platforms.create(820, 280, 'ground2');
 
             //vidas
-            img1Vidas=this.add.image(580,25,'1vida');
-            img2Vidas=this.add.image(580,25,'2vida');
-            img3Vidas=this.add.image(580,25,'3vida');
+            img1Vidas=this.add.image(520,25,'1vida');
+            img2Vidas=this.add.image(520,25,'2vida');
+            img3Vidas=this.add.image(520,25,'3vida');
         
             if(selectedAvatar==="avatar1"){
                 player = this.physics.add.sprite(200, 420, 'dude1');
@@ -588,7 +616,9 @@ function ejecutarJuego(){
     
         colectarGallinas(player, gallina) {
             gallina.disableBody(true, true);
-    
+            let sonidoGallina = this.sound.add('item2');
+            sonidoGallina.play();
+
             score += 10;
             scoreText.setText('Score: ' + score);
     
@@ -671,6 +701,8 @@ function ejecutarJuego(){
     
 
     function GameOver(scene){
+        let musica = this.sound.add('GameOverSound');
+        musica.play({ loop: true });
         scene.physics.pause();
         player.setTint(0xff0000);
         player.anims.play('turn');

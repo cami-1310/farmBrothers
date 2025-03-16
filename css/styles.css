@@ -4,11 +4,13 @@
     --bgColor3: #FFE6C9;
     --bgColor4: #D2665A;
     --bgColor5: #FFF0BD;
+    --bgColor6: #A8CD89;
 
     --txtColor1: #4DA1A9;
     --txtColor2: #E52020;
     --txtColor3: #A31D1D;
     --txtColor4: #FBA518;
+    --txtColor5: #399918;
 }
 
 body {
@@ -162,9 +164,8 @@ body {
 
 .btns-avatar{
     grid-area: botones;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
 }
 
@@ -175,6 +176,14 @@ body {
     padding: 0;
     display: flex;
     align-items: center;
+}
+
+#regresarInicio{ 
+    justify-content: left;
+}
+
+#selectAvtr{
+    justify-content: right;
 }
 
 #selectAvtr img, 
@@ -211,8 +220,9 @@ body {
 }
 
 .contenido-Instrucciones{
+    min-width: 750px;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: auto 250px;
     justify-content: center;
     align-items: center;
 }
@@ -222,7 +232,7 @@ body {
     color: white;
     box-shadow: 2px 2px 5px rgb(0, 0, 0, 0.2);
     border-radius: 5px;
-    height: 300px;
+    height: auto;
     margin: 10px;
     padding: 10px;
     display: flex;
@@ -233,8 +243,13 @@ body {
 
 #pantallaInstrucciones .txt-format .conteinerI p{
     color: white;
-    font-size: 18px;
+    font-size: 15px;
     text-align: justify;
+}
+
+.pt2 img{
+    height: 80px;
+    width: auto;
 }
 
 .btns-instrucciones{
@@ -270,7 +285,7 @@ body {
 
 .rafa_cami img{
     width: auto;
-    height: 250px;
+    height: 200px;
     border-radius: 5px;
     margin: 15px;
     box-shadow: 2px 2px 5px rgb(0, 0, 0, 0.2);
@@ -283,31 +298,36 @@ body {
     align-items: center;
 }
 
-/* para pantallas de username*/
+/* para pantalla de username*/
 #pantallaUsuario{
     background-color: var(--bgColor1);
     color: var(--txtColor1);
     width: 800px;
     height: 600px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .btn-pixel {
-    width: 50%;  
-    font-family: 'Jersey 10', cursive;
-    font-size: 24px;
-    padding: 20px 40px;
-    border: 4px solid #000;
-    background-color: var(--txtColor1);
-    color: #000;
-    text-shadow: 1px 1px 2px #000;
-    letter-spacing: 2px;
-    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease-in-out;
+    border: none;
+    background-color: transparent;
+    padding: 0;
+}
+
+.btn-pixel img{
+    width: auto;
+    height: 80px;
+    transition: transform 0.3s ease;
 }
     
 .btn-pixel:hover {
     transform: scale(1.1); 
-    background-color: #ff9900;
+}
+
+.conteinerBtns{
+    width: 95%;
 }
 
 #nombre{
@@ -323,74 +343,75 @@ body {
     font-family: "Jersey 10", sans-serif;
     font-weight: 400;
     font-style: normal;
-    background-color: #111;
-    color: #00ff00;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    background-color: var(--bgColor6);
     height: 600px;
     width: 800px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 20px;
-    position: relative;
 }
 
 #pantallaScores h1 {
-    font-size: 36px;
-    color: #00ff00;
-    text-shadow: 4px 4px #000;
-    margin-bottom: 20px;
-    text-align: center;
+    color: var(--txtColor5);
 }
 
 .score-container {
-    max-height: 500px;
+    font-size: 20px;
+    height: 400px;
+    width: 700px;
     overflow-y: auto;
-    border: 4px solid #006400;
-    box-shadow: 8px 8px 0 #000;
-    border-radius: 10px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-bottom: 10px;
+
 }
 
+#sscoreTableBody tr{
+    height: 30px;
+    margin-top: 30px;
+}
 .score {
-    border-collapse: separate;
-    border-spacing: 0;
-    background-color: #222;
-    color: #00ff00;
     width: 100%;
+    height: 100%;
+    border-collapse: separate;
+    background-color: var(--bgColor2);
     text-align: center;
-    font-size: 20px;
+    table-layout: fixed;
 }
 
 .score th, .score td {
     border: 2px solid #006400;
-    padding: 20px 30px;
-    font-size: 20px;
+    word-wrap: break-word;
+    color: black;
 }
 
 .score th {
     background-color: #004d00;
-    color: #ccffcc;
+    color: white;
+    font-size: 30px;
+    letter-spacing: 2px;
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 1; 
+    padding-top: 0;
+    margin-bottom: 30px;
 }
 
-.score tr:hover {
-    background-color: #005500;
-    color: #ffffff;
-}
-
-#regresarInicio {
-    position: relative;
-    margin-top: 20px;
-    align-self: center;
+.score tbody tr{
+    height: 30px;
 }
 
 /* Top 3 scores*/
 .top1 { background-color: gold; color: #111; }
 .top2 { background-color: silver; color: #111; }
 .top3 { background-color: #cd7f32; color: #111; }
+
+.btnScore{
+    width: 95%;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
