@@ -907,7 +907,7 @@ function ejecutarJuego(){
 
             if (gallinas.countActive(true) === 0 && countGallinas<4) {
                 let xG=12;
-
+                countGallinas++;
                 gallinas.children.iterate(child => {
                     let separacion = Phaser.Math.Between(70, 100);
                     child.enableBody(true, xG, 0, true, true);
@@ -1080,7 +1080,7 @@ function ejecutarJuego(){
         bgHeader.fillStyle(0xFFFFFF, 1);
         bgHeader.fillRoundedRect(10, 530, 780, 50, 10); // (x, y, width, height, radius)
 
-        let felicitacion = scene.add.text(250, 540, '¡FELICIDADES '+nombre+'!', { fontSize: '30px', fill: '#D6AE01' }).setDepth(14);
+        let felicitacion = scene.add.text(280, 540, '¡FELICIDADES '+nombre+'!', { fontFamily: '"Jersey 10", sans-serif',fontSize: '30px', fill: '#D6AE01' }).setDepth(14);
     }
 }
 
