@@ -864,7 +864,7 @@ function ejecutarJuego(){
             }
             //si gana
             console.log(countGallinas);
-            if(countGallinas>=4 && !this.hasHandledWin) {
+            if(countGallinas>=5 && !this.hasHandledWin) {
                 this.hasHandledWin = true;
                 //pantalla de ganar
                 musica2.pause();
@@ -955,7 +955,7 @@ function ejecutarJuego(){
     
             score += 10;
             scoreText.setText('Score: ' + score);
-            if (gallinas.countActive(true) === 0 && countGallinas<4) {
+            if (gallinas.countActive(true) === 0 && countGallinas<5) {
                 console.log("entro");
                 countGallinas++;
                 let xG=12;
@@ -989,7 +989,7 @@ function ejecutarJuego(){
 
             gallina.disableBody(true, true);
 
-            if (gallinas.countActive(true) === 0 && countGallinas<4) {
+            if (gallinas.countActive(true) === 0 && countGallinas<5) {
                 let xG=12;
                 countGallinas++;
                 gallinas.children.iterate(child => {
