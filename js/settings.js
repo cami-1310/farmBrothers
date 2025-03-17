@@ -6,7 +6,7 @@ let img3Vidas;
 let img2Vidas;
 let img1Vidas;
 let fechaActual;
-let countGallinas=4;
+let countGallinas=0;
 
 /* Para uso de canvas ---------------------------------------------------------------------- */
 let canvas = document.getElementById("pantallaInicio");
@@ -778,6 +778,15 @@ function ejecutarJuego(){
                 img1Vidas.destroy();
                 gameOver = true;
             }
+            //si gana
+            console.log(countGallinas);
+            if(countGallinas>=4 && !this.hasHandledWin) {
+                this.hasHandledWin = true;
+                //pantalla de ganar
+                musica2.pause();
+
+                Win(this);
+            }    
 
             //si pierde
             if (gameOver && !this.hasHandledGameOver) {
@@ -862,9 +871,9 @@ function ejecutarJuego(){
     
             score += 10;
             scoreText.setText('Score: ' + score);
-            
-            if (gallinas.countActive(true) === 0 && countGallinas>0) {
-                countGallinas-=1;
+            if (gallinas.countActive(true) === 0 && countGallinas<4) {
+                console.log("entro");
+                countGallinas++;
                 let xG=12;
 
                 gallinas.children.iterate(child => {
@@ -886,13 +895,9 @@ function ejecutarJuego(){
                 bomb.setCollideWorldBounds(true);
                 bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
                 bomb.allowGravity = false;
-            }
-            if(countGallinas<=0){
-                //pantalla de ganar
-                musica2.pause();
-                Win(this);
-            }
+            }         
         }
+          
     
         choqueCoyote(coyote, gallina) {
             let sonidoGallina = this.sound.add('item2');
@@ -900,7 +905,7 @@ function ejecutarJuego(){
 
             gallina.disableBody(true, true);
 
-            if (gallinas.countActive(true) === 0 && score<=880) {
+            if (gallinas.countActive(true) === 0 && countGallinas<4) {
                 let xG=12;
 
                 gallinas.children.iterate(child => {
@@ -952,8 +957,6 @@ function ejecutarJuego(){
 
     function guardarScore() {
         let jugadores = JSON.parse(localStorage.getItem("jugadores")) || [];
-        
-        console.log(nombre, "-", score, "-", fechaActual);
         let jugadorExistente = jugadores.find(item => item.usuario === nombre);
     
         if (jugadorExistente) {
@@ -1074,7 +1077,7 @@ function ejecutarJuego(){
         });
         
         let bgHeader = scene.add.graphics().setDepth(13);
-        bgHeader.fillStyle(0x000, 1);
+        bgHeader.fillStyle(0xFFFFFF, 1);
         bgHeader.fillRoundedRect(10, 530, 780, 50, 10); // (x, y, width, height, radius)
 
         let felicitacion = scene.add.text(250, 540, '¡FELICIDADES '+nombre+'!', { fontSize: '30px', fill: '#D6AE01' }).setDepth(14);
@@ -1095,8 +1098,6 @@ function validarName() {
         }
         // Verifica si el nombre ya existe en la lista
         let nombreExistente = scores.some(item => item.usuario === nombre);
-        console.log(nombre);
-        console.log(nombreExistente);
         if (!nombreExistente) {
             document.getElementById('pantallaUsuario').style.display = 'none';
             ejecutarJuego();
