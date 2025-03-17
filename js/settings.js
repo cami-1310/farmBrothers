@@ -939,10 +939,10 @@ function ejecutarJuego(){
             });
         
             btnSound.on('pointerdown', () => {
-                if(musica.isPlaying){
-                    musica.pause();
+                if(musica2.isPlaying){
+                    musica2.pause();
                 } else {
-                    musica.resume();
+                    musica2.resume();
                 }
             });
         }    
