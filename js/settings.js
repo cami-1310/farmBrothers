@@ -118,18 +118,18 @@ function backToPantalla_Avatar(){
 
 /* Para drag and drop ---------------------------------------------------------------------- */
 function allowDrop(ev) {
-    ev.preventDefault();  
+    ev.preventDefault();
 }
 
 function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.id); // Asigna el id del avatar al evento drag
+    ev.dataTransfer?.setData("text", ev.target.id); // Soporte para drag clásico
+    startDragTouch(ev); // Manejo táctil
 }
 
 function drop(ev) {
     ev.preventDefault();
 
-    if (selectedAvatar!=null) {
-        //si ya hay algo en el dropzone
+    if (selectedAvatar != null) {
         Swal.fire({
             icon: "error",
             title: "Error!",
@@ -138,62 +138,94 @@ function drop(ev) {
         return;
     }
 
-    var data = ev.dataTransfer.getData("text");
-    var draggedElement = document.getElementById(data); // Obtiene el avatar arrastrado
-    draggedElement.classList.add("avatar-fixed");
-    ev.target.appendChild(draggedElement); // Mueve el avatar al dropzone
+    const data = ev.dataTransfer?.getData("text");
+    const draggedElement = data ? document.getElementById(data) : currentTouchElement;
 
-    // Verificamos qué avatar está dentro del dropzone
-    if (ev.target.id === "dropzone") {
-        selectedAvatar = ev.target.querySelector('img').id;
+    if (draggedElement) {
+        draggedElement.classList.add("avatar-fixed");
+        ev.target.appendChild(draggedElement);
+
+        if (ev.target.id === "dropzone") {
+            selectedAvatar = ev.target.querySelector('img').id;
+        }
     }
 }
 
-// Colgando los eventos a las etiquetas
+// --- Soporte táctil ---
+let currentTouchElement = null;
+let touchOffsetX = 0, touchOffsetY = 0;
+
+function startDragTouch(e) {
+    const event = e.type.includes('touch') ? e.touches[0] : e;
+    currentTouchElement = e.target;
+    touchOffsetX = event.clientX - currentTouchElement.getBoundingClientRect().left;
+    touchOffsetY = event.clientY - currentTouchElement.getBoundingClientRect().top;
+}
+
+function moveTouch(e) {
+    if (!currentTouchElement) return;
+    const event = e.type.includes('touch') ? e.touches[0] : e;
+    const x = event.clientX - touchOffsetX;
+    const y = event.clientY - touchOffsetY;
+
+    currentTouchElement.style.position = "absolute";
+    currentTouchElement.style.left = `${x}px`;
+    currentTouchElement.style.top = `${y}px`;
+}
+
+function endTouch(e) {
+    if (currentTouchElement) {
+        const dropzone = document.getElementById('dropzone');
+        const dropzoneRect = dropzone.getBoundingClientRect();
+        const touchX = e.changedTouches[0].clientX;
+        const touchY = e.changedTouches[0].clientY;
+
+        if (touchX >= dropzoneRect.left && touchX <= dropzoneRect.right &&
+            touchY >= dropzoneRect.top && touchY <= dropzoneRect.bottom) {
+            drop({ preventDefault: () => {}, target: dropzone });
+        }
+        currentTouchElement = null;
+    }
+}
+
+// --- Eventos para escritorio ---
 document.getElementById("avatar1").addEventListener("dragstart", drag);
 document.getElementById("avatar2").addEventListener("dragstart", drag);
-//puedan soltarse
 document.getElementById("dropzone").addEventListener("dragover", allowDrop);
 document.getElementById("dropzone").addEventListener("drop", drop);
-document.getElementById("avatar2").addEventListener('touchstart', startDrag);
-document.getElementById("avatar2").addEventListener('touchmove', drag);
-document.getElementById("avatar2").addEventListener('touchend', stopDrag);
 
-//se elige el avatar
-function selectAvatar(){
-    if(selectedAvatar){
-        if(selectedAvatar === "avatar1"){
-            document.getElementById('pantallaAvatar').style.display = 'none';
-            
-        } else if (selectedAvatar === "avatar2"){
-            document.getElementById('pantallaAvatar').style.display = 'none';
-        }
-        
+// --- Eventos táctiles ---
+["avatar1", "avatar2"].forEach(id => {
+    const avatar = document.getElementById(id);
+    avatar.addEventListener('touchstart', startDragTouch);
+    document.addEventListener('touchmove', moveTouch);
+    document.addEventListener('touchend', endTouch);
+});
+
+// --- Selección del avatar ---
+function selectAvatar() {
+    if (selectedAvatar) {
         document.getElementById('pantallaAvatar').style.display = 'none';
         document.getElementById('pantallaUsuario').style.display = 'flex';
-    }
-    else {
+    } else {
         Swal.fire({
             icon: "error",
             title: "Error!",
-            text: "No elegiste ningun avatar"
+            text: "No elegiste ningún avatar"
         });
-
         resetAvatarSelection();
     }
 }
 
-// Función para resetear la pantalla si no eligio el avatar
+// --- Resetear selección ---
 function resetAvatarSelection() {
-    selectedAvatar=null;
-    // Vuelve a poner los avatares disponibles
-    var avatar1 = document.getElementById("avatar1");
-    var avatar2 = document.getElementById("avatar2");
-
-    // Añade los avatares nuevamente al contenedor
-    document.getElementById("avatares").appendChild(avatar1);
-    document.getElementById("avatares").appendChild(avatar2);
+    selectedAvatar = null;
+    ["avatar1", "avatar2"].forEach(id => {
+        const avatar = document.getElementById(id);
+        document.getElementById("avatares").appendChild(avatar);
+    });
 }
+
 
 function ejecutarJuego(){
     document.getElementById('gameContainer').style.display = 'block';
@@ -353,7 +385,56 @@ function ejecutarJuego(){
 
             // Controles
             cursors = this.input.keyboard.createCursorKeys();
-    
+            cursors = this.input.keyboard.createCursorKeys();
+
+            // Variables para los gestos
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchEndX = 0;
+            let touchEndY = 0;
+
+            // Detecta el inicio del toque
+            this.input.on('pointerdown', (pointer) => {
+                touchStartX = pointer.downX;
+                touchStartY = pointer.downY;
+            });
+
+            // Detecta cuando termina el toque
+            this.input.on('pointerup', (pointer) => {
+                touchEndX = pointer.upX;
+                touchEndY = pointer.upY;
+
+                const swipeX = touchEndX - touchStartX;
+                const swipeY = touchEndY - touchStartY;
+
+                // Determinamos la dirección del swipe
+                if (Math.abs(swipeX) > Math.abs(swipeY)) {
+                    if (swipeX > 30) {
+                        cursors.right.isDown = true;
+                        cursors.left.isDown = false;
+                    } else if (swipeX < -30) {
+                        cursors.left.isDown = true;
+                        cursors.right.isDown = false;
+                    }
+                } else {
+                    if (swipeY > 30) {
+                        cursors.down.isDown = true;
+                        cursors.up.isDown = false;
+                    } else if (swipeY < -30) {
+                        cursors.up.isDown = true;
+                        cursors.down.isDown = false;
+                    }
+                }
+
+                // Resetea después del movimiento
+                setTimeout(() => {
+                    cursors.right.isDown = false;
+                    cursors.left.isDown = false;
+                    cursors.up.isDown = false;
+                    cursors.down.isDown = false;
+                }, 150);
+            });
+
             // Pacas
             pacas = this.physics.add.group({
                 key: 'paca',
