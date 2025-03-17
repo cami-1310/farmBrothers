@@ -155,6 +155,9 @@ document.getElementById("avatar2").addEventListener("dragstart", drag);
 //puedan soltarse
 document.getElementById("dropzone").addEventListener("dragover", allowDrop);
 document.getElementById("dropzone").addEventListener("drop", drop);
+document.getElementById("avatar2").addEventListener('touchstart', startDrag);
+document.getElementById("avatar2").addEventListener('touchmove', drag);
+document.getElementById("avatar2").addEventListener('touchend', stopDrag);
 
 //se elige el avatar
 function selectAvatar(){
